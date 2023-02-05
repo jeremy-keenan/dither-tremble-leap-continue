@@ -1,5 +1,5 @@
 Server.local.options.numOutputBusChannels = 6;
-(//dither-tremble-leak-
+(//https://github.com/jeremy-keenan/dither-tremble-leak-continue
 s.waitForBoot{
 	Buffer.loadDialog(action: {arg buffer; ~b1 = buffer.read(buffer.path)});
 	Buffer.loadDialog(action: {arg buffer; ~b2 = buffer.read(buffer.path)});
@@ -8,39 +8,34 @@ s.waitForBoot{
 	s.sync;
 	//ear as mouth
 	SynthDef(\amplitudeAnalysis, {arg inBus = 0, rate = 60;
-		var input = SoundIn.ar(inBus);
-		var amp = Amplitude.kr(input);
-		var trig = Impulse.kr(rate);
-		SendReply.kr(trig, '/analysis', [amp]);
-	}).add;
+		var amp = Amplitude.kr(SoundIn.ar(inBus));
+		SendReply.kr(Impulse.kr(rate), '/analysis', [amp]);
+	}).play(~mix, [\inBus, 0], \addToTail);
 	//world as dither
 	OSCdef(\listener).free;
 	~netAddr = NetAddr("127.0.0.1", 5000);
-	~amplitudeAnalysis = Synth(\amplitudeAnalysis);
 	OSCdef(\listener, {arg msg; var data = msg[3..];
 		~amp = data[0];
 	}, '/analysis');
-	//
+	//continue
 	~gen = Group.new;
 	~proc = Group.new(~gen, \addAfter);
 	~mix = Group.new(~proc, \addAfter);
 	~rec = Group.new(~mix, \addAfter);
 	~scale = Scale.minor(\just);
 	~gens = Array.with(\additive, \crossed, \banded, \grains);
-	~dsp = Array.with(\reson, \flanger, \pitcher, \phaser, \spitcher, \brickwall, \svffilter, \infverb, \binscramble, \comb, \rectcomb, \partialsynthp, \trem, \conmap, \svf, \delay, \chorus);
+	~dsp = Array.with(\reson, \flange, \pitcher, \phaser, \spitcher, \brickwall, \svf, \infverb, \scramble, \comb, \rectcomb, \psp, \trem, \conmap, \svf, \delay, \chorus);
 	//forms of trembling
 	SynthDef("trem", {arg inBus = 0, outBus = 0, gate = 1, atk = 0.1, dc = 0.1, sus = 1, rel = 0.1, curve = 1, outAmp = 0.5, wet = 1, modFreq = 0, depth = 1;
 		var sig, env;
-		sig = In.ar(inBus, 1);
-		sig = sig * (SinOsc(modFreq).range(0,1) * depth);
+		sig = In.ar(inBus, 1) * (SinOsc(modFreq).range(0,1) * depth);
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
 	s.sync;
 	SynthDef("conmap", {arg inBus = 0, outBus = 0, gate = 1, atk = 0.1, sus = 1, rel = 0.1, curve = 1, image = 0,  real = 0, outAmp = 1, wet = 1;
 		var sig, env, chain;
-		sig = In.ar(inBus, 1);
-		chain = FFT(LocalBuf(8192, 1), sig);
+		chain = FFT(LocalBuf(8192, 1), In.ar(inBus, 1));
 		chain = PV_ConformalMap(chain, real, image);
 		sig = IFFT(chain) * outAmp;
 		sig = Limiter.ar(sig);
@@ -50,16 +45,14 @@ s.waitForBoot{
 	s.sync;
 	SynthDef("delay", {arg inBus = 0, outBus = 0, atk = 0.1, sus = 1, rel = 0.1, curve = 1, gate = 1, outAmp = 0.25, wet = 1, delTime = 0.1, fbk = 0.5;
 		var sig, env;
-		sig = In.ar(inBus, 1);
-		sig = SwitchDelay.ar(sig, 1, 1, delTime, fbk, 4);
+		sig = SwitchDelay.ar(In.ar(inBus, 1), 1, 1, delTime, fbk, 4);
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
 	s.sync;
 	SynthDef("rectcomb", {arg inBus = 0, outBus = 0, gate = 1 , atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, phase = 0, teeth = 0, outAmp = 1, wet = 1, width = 0.5;
 		var sig, env, chain;
-		sig = In.ar(inBus, 1);
-		chain = FFT(LocalBuf(8192), sig);
+		chain = FFT(LocalBuf(8192), In.ar(inBus, 1));
 		chain = PV_RectComb(chain, teeth, phase, width);
 		sig = IFFT(chain) * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
@@ -76,10 +69,9 @@ s.waitForBoot{
 		XOut.ar(outBus, env, mixed * 0.35);
 	}).add;
 	s.sync;
-	SynthDef("binscramble", {arg inBus = 0, outBus = 0, gate = 1 , atk = 0.1, dec = 0.1, sus = 1,rel = 0.1, curve = 1, wipe = 1, width = 0.5, outAmp = 1, wet = 1
-		var sig, env,  chain;
-		sig = In.ar(inBus, 1);
-		chain = FFT(LocalBuf(8192), sig);
+	SynthDef("scramble", {arg inBus = 0, outBus = 0, gate = 1 , atk = 0.1, dec = 0.1, sus = 1,rel = 0.1, curve = 1, wipe = 1, width = 0.5, outAmp = 1, wet = 1;
+		var sig, env, chain;
+		chain = FFT(LocalBuf(8192), In.ar(inBus, 1));
 		chain = PV_BinScramble(chain, wipe, width, 1);
 		sig = IFFT(chain) * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
@@ -100,8 +92,7 @@ s.waitForBoot{
 	s.sync;
 	SynthDef("svf", {arg inBus = 0, outBus = 0, freq = 1000, res = 0.5, gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, low = 0, band = 1, high = 0,notch = 0, peak = 0, outAmp = 1, wet = 1;
 		var sig, env;
-		sig = In.ar(inBus, 1);
-		sig = SVF.ar(sig, freq.abs, res, low, band, high, notch, peak);
+		sig = SVF.ar(In.ar(inBus, 1), freq.abs, res, low, band, high, notch, peak);
 		sig = sig * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
@@ -109,9 +100,8 @@ s.waitForBoot{
 	s.sync;
 	SynthDef("brickwall", {arg inBus = 0, outBus = 0, freq = 0,  gate = 1, filtype = 1 , atk = 0.1,   dec = 0.1, sus = 1, rel = 0.1, curve = 1,outAmp = 1, wet = 1;
 		var sig, env, chain;
-		sig = In.ar(inBus, 1);
 		freq = 2 * freq/s.sampleRate * filtype;
-		chain = FFT(LocalBuf(8192), sig);
+		chain = FFT(LocalBuf(8192), In.ar(inBus, 1));
 		chain = PV_BrickWall(chain, freq);
 		sig = IFFT(chain) * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
@@ -133,8 +123,7 @@ s.waitForBoot{
 	s.sync;
 	SynthDef("pitcher", {arg inBus = 0, outBus = 0, freq = 1000, gate = 1,  pitchDisp = 0.001, timeDisp = 0.001 , atk = 0.1, dec = 0.1, rel = 0.11, curve = 1, sus = 1,  outAmp = 1, wet = 1;
 		var sig, env;
-		sig = In.ar(inBus, 1);
-		sig = PitchShift.ar(sig, 0.3, (freq.cpsmidi - 60).midiratio , pitchDisp , timeDisp);
+		sig = PitchShift.ar(In.ar(inBus, 1), 0.3, (freq.cpsmidi - 60).midiratio , pitchDisp , timeDisp);
 		sig = sig * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
@@ -142,8 +131,7 @@ s.waitForBoot{
 	s.sync;
 	SynthDef("reson", {arg inBus = 0, outBus = 0, freq = 500, bwr = 3, gate = 1 , atk = 0.1, dec = 0.1, rel = 0.1, curve = 1, sus = 1,  outAmp = 1, wet = 1;
 		var sig, env;
-		sig = In.ar(inBus, 1);
-		sig = Resonz.ar(sig, freq, bwr);
+		sig = Resonz.ar(In.ar(inBus, 1), freq, bwr);
 		sig = sig * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
@@ -152,7 +140,7 @@ s.waitForBoot{
 	SynthDef("phaser", {arg inBus = 0, outBus = 0, freq = 1000, res = 0, gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, outAmp = 1, wet = 1;
 		var sig, sig2, env, mixed;
 		sig = In.ar(inBus, 1);
-		sig2 = AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(sig, 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res ), 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res, 0.10),  freq.reciprocal, res), 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res);
+		sig2 = AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(AllpassC.ar(sig, 0.10, freq.reciprocal, res), 0.10,  freq.reciprocal, res ), 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res, 0.10),  freq.reciprocal, res), 0.10,  freq.reciprocal, res), 0.10,  freq.reciprocal, res);
 		mixed = sig + sig2 * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet , curve), doneAction: 2);
 		XOut.ar(outBus, env, mixed);
@@ -169,17 +157,16 @@ s.waitForBoot{
 		XOut.ar(outBus, env, sig);
 	}).add;
 	s.sync;
-	SynthDef("flanger", {arg inBus = 0, outBus = 0, modRate = 1,gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, maxDelay = 0.01, minDelay = 0.001, decayTime = 1, curve = 1, outAmp = 1, wet = 1;
-		var env, sig = In.ar(inBus, 1);
-		sig = CombC.ar(sig, maxDelay, SinOsc.ar(modRate, 0, (maxDelay * 0.5) - minDelay, (maxDelay * 0.5) + minDelay), decayTime, outAmp);
+	SynthDef("flange", {arg inBus = 0, outBus = 0, modRate = 1,gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, maxDelay = 0.01, minDelay = 0.001, decayTime = 1, curve = 1, outAmp = 1, wet = 1;
+		var env, sig;
+		sig = CombC.ar(In.ar(inBus, 1), maxDelay, SinOsc.ar(modRate, 0, (maxDelay * 0.5) - minDelay, (maxDelay * 0.5) + minDelay), decayTime, outAmp);
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet , curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
 	s.sync;
-	SynthDef("partialsynthp", {arg in = 0, outBus = 0,  threshold = 10, outAmp = 1, gate = 1, numFrames = 6,  initFlag = 0, atk = 0.1, sus = 1, rel = 0.1, wet = 1, curve = 1;
+	SynthDef("psp", {arg inBus = 0, outBus = 0, threshold = 10, outAmp = 1, gate = 1, numFrames = 6, initFlag = 0, atk = 0.1, sus = 1, rel = 0.1, wet = 1, curve = 1;
 		var sig, env, inSig, chain;
-		inSig = In.ar(in, 1);
-		chain = FFT({ LocalBuf(8192) } ! 1, inSig);
+		chain = FFT({ LocalBuf(8192) } ! 1, In.ar(inBus, 1));
 		chain = PV_PartialSynthP(chain, threshold, numFrames, initFlag);
 		sig = IFFT(chain) * outAmp;
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
