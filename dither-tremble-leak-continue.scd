@@ -3,7 +3,7 @@ Server.local.options.numOutputBusChannels = 6;
 s.waitForBoot{
 	Buffer.loadDialog(action: {arg buffer; ~b1 = buffer.read(buffer.path)});
 	Buffer.loadDialog(action: {arg buffer; ~b2 = buffer.read(buffer.path)});
-	//reentry-before-the-beginning
+	//re-enter-before-the-beginning
 	~b3 = Buffer.alloc(s, 44100 * 8.0, 1);
 
 	//continue
