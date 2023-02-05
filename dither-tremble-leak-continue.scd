@@ -174,7 +174,7 @@ s.waitForBoot{
 		XOut.ar(outBus, env, sig);
 	}).add;
 
-	//leak.leap
+	//leak-leap
 	SynthDef("add", {arg outBus = 0, filter = 0.5, rate = 1, atk = 0.1, sus = 1, gate = 1,filtFreq = 1000, rel = 0.1, curve = 0, verbMix = 0.5, freq = 100, numHarm = 25, mode = 0, lag = 1, freeze = 0, buf, outAmp = 1;
 		var sig, sig2, verb, chain, chain1, chain2, env;
 		sig = Blip.ar(freq, numHarm);
@@ -280,8 +280,8 @@ s.waitForBoot{
 		\instrument, Pxrand(~dsp, inf).trace,
 		\group, ~prc,
 		\addAction, \addToTail,
-		\inBus, Pfunc({((~lvl * 10000) % 1.0).range(2,5).round.postln}),
-		\outBus, Pfunc({((~lvl * 15000) % 1.0).range(2,5).round.postln}),
+		\inBus, Pfunc({((~lvl * 10000) % 1.0).range(2,5).round}),
+		\outBus, Pfunc({((~lvl * 15000) % 1.0).range(2,5).round}),
 		\modFreq, Pfunc({((~lvl * 10000) % 1.0).range(0.1,3)}),
 		\modRate, Pfunc({((~lvl * 10000) % 1.0).range(0.0001,0.05)}),
 		\depth, Pfunc({((~lvl * 10000) % 1.0).range(0.1,0.9)}),
@@ -322,4 +322,3 @@ s.waitForBoot{
 	//emerge
 };
 )
-
