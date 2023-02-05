@@ -7,8 +7,8 @@ s.waitForBoot{
 	~b3 = Buffer.alloc(s, 44100 * 8.0, 1);
 	s.sync;
 	//ear as mouth
-	SynthDef(\amplitudeAnalysis, {arg inBus = 0, rate = 60;
-		var amp = Amplitude.kr(SoundIn.ar(inBus));
+	SynthDef(\amplitude, {arg inBus = 0, rate = 60;
+		var amp = Amplitude.kr(SoundIn.ar(inBus) + In.ar(inBus));
 		SendReply.kr(Impulse.kr(rate), '/analysis', [amp]);
 	}).play(~mix, [\inBus, 0], \addToTail);
 	//world as dither
@@ -32,7 +32,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("conmap", {arg inBus = 0, outBus = 0, gate = 1, atk = 0.1, sus = 1, rel = 0.1, curve = 1, image = 0,  real = 0, outAmp = 1, wet = 1;
 		var sig, env, chain;
 		chain = FFT(LocalBuf(8192, 1), In.ar(inBus, 1));
@@ -42,14 +42,14 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet * 0.75, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("delay", {arg inBus = 0, outBus = 0, atk = 0.1, sus = 1, rel = 0.1, curve = 1, gate = 1, outAmp = 0.25, wet = 1, delTime = 0.1, fbk = 0.5;
 		var sig, env;
 		sig = SwitchDelay.ar(In.ar(inBus, 1), 1, 1, delTime, fbk, 4);
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("rectcomb", {arg inBus = 0, outBus = 0, gate = 1 , atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, phase = 0, teeth = 0, outAmp = 1, wet = 1, width = 0.5;
 		var sig, env, chain;
 		chain = FFT(LocalBuf(8192), In.ar(inBus, 1));
@@ -58,7 +58,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("comb", {arg inBus = 0, outBus = 0, freq = 1000, res = 0.1, gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, outAmp = 1, wet = 1;
 		var sig, sig2, mixed, env;
 		sig = In.ar(inBus, 1);
@@ -68,7 +68,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet , curve), doneAction: 2);
 		XOut.ar(outBus, env, mixed * 0.35);
 	}).add;
-	s.sync;
+
 	SynthDef("scramble", {arg inBus = 0, outBus = 0, gate = 1 , atk = 0.1, dec = 0.1, sus = 1,rel = 0.1, curve = 1, wipe = 1, width = 0.5, outAmp = 1, wet = 1;
 		var sig, env, chain;
 		chain = FFT(LocalBuf(8192), In.ar(inBus, 1));
@@ -77,7 +77,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("infverb", {arg inBus = 0, outBus = 0,  gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, decay = 0.7, outAmp = 1,  wet = 1;
 		var sig, env, local;
 		sig = In.ar(inBus, 1);
@@ -89,7 +89,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, local * outAmp);
 	}).add;
-	s.sync;
+
 	SynthDef("svf", {arg inBus = 0, outBus = 0, freq = 1000, res = 0.5, gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, low = 0, band = 1, high = 0,notch = 0, peak = 0, outAmp = 1, wet = 1;
 		var sig, env;
 		sig = SVF.ar(In.ar(inBus, 1), freq.abs, res, low, band, high, notch, peak);
@@ -107,7 +107,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("spitcher", {arg inBus = 0, outBus = 0, freq = 1, gate = 1, pitchDisp = 0.01, timeDisp = 0.01 , atk = 0.1, dec = 0.1, rel = 0.11, decay = 0.8, curve = 1, delTime = 0.1,  sus = 1, outAmp = 1, wet = 1;
 		var sig, env, local, del;
 		sig = In.ar(inBus, 1);
@@ -120,7 +120,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, local * outAmp);
 	}).add;
-	s.sync;
+
 	SynthDef("pitcher", {arg inBus = 0, outBus = 0, freq = 1000, gate = 1,  pitchDisp = 0.001, timeDisp = 0.001 , atk = 0.1, dec = 0.1, rel = 0.11, curve = 1, sus = 1,  outAmp = 1, wet = 1;
 		var sig, env;
 		sig = PitchShift.ar(In.ar(inBus, 1), 0.3, (freq.cpsmidi - 60).midiratio , pitchDisp , timeDisp);
@@ -128,7 +128,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("reson", {arg inBus = 0, outBus = 0, freq = 500, bwr = 3, gate = 1 , atk = 0.1, dec = 0.1, rel = 0.1, curve = 1, sus = 1,  outAmp = 1, wet = 1;
 		var sig, env;
 		sig = Resonz.ar(In.ar(inBus, 1), freq, bwr);
@@ -136,7 +136,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("phaser", {arg inBus = 0, outBus = 0, freq = 1000, res = 0, gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, curve = 1, outAmp = 1, wet = 1;
 		var sig, sig2, env, mixed;
 		sig = In.ar(inBus, 1);
@@ -145,7 +145,7 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet , curve), doneAction: 2);
 		XOut.ar(outBus, env, mixed);
 	}).add;
-	s.sync;
+
 	SynthDef("chorus", {arg inBus = 0, outBus = 0, modRate = 0.001, maxDelay = 0.05, minDelay = 0.01, gate = 1, atk = 0.1, dec = 0.1,sus = 1, rel = 0.1, curve = 1,dry = 0, wet = 1, amp = 1;
 		var sig, env, lfos, chorus;
 		sig = In.ar(inBus, 1) * 8.reciprocal;
@@ -156,14 +156,14 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("flange", {arg inBus = 0, outBus = 0, modRate = 1,gate = 1, atk = 0.1, dec = 0.1, sus = 1, rel = 0.1, maxDelay = 0.01, minDelay = 0.001, decayTime = 1, curve = 1, outAmp = 1, wet = 1;
 		var env, sig;
 		sig = CombC.ar(In.ar(inBus, 1), maxDelay, SinOsc.ar(modRate, 0, (maxDelay * 0.5) - minDelay, (maxDelay * 0.5) + minDelay), decayTime, outAmp);
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet , curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
+
 	SynthDef("psp", {arg inBus = 0, outBus = 0, threshold = 10, outAmp = 1, gate = 1, numFrames = 6, initFlag = 0, atk = 0.1, sus = 1, rel = 0.1, wet = 1, curve = 1;
 		var sig, env, inSig, chain;
 		chain = FFT({ LocalBuf(8192) } ! 1, In.ar(inBus, 1));
@@ -172,7 +172,6 @@ s.waitForBoot{
 		env = EnvGen.ar(Env.linen(atk, sus, rel, wet, curve), doneAction: 2);
 		XOut.ar(outBus, env, sig);
 	}).add;
-	s.sync;
 
 	//leak | leap
 	SynthDef("additive", {arg outBus = 0, filter = 0.5, rate = 1, atk = 0.1, sus = 1, gate = 1,filtFreq = 1000, rel = 0.1, curve = 0, verbMix = 0.5, freq = 100, numHarm = 25, mode = 0, lag = 1, freeze = 0, buf, outAmp = 1;
@@ -248,7 +247,7 @@ s.waitForBoot{
 	}).play(~rec, [\inBus, 0, \outBus, 0, \buf, ~b3], \addToHead);
 	s.sync;
 
-	//murmurate
+	//distribute
 	Pdef(\GEN, Pbind(
 		\instrument, Pxrand(~gens, inf).trace,
 		\group, ~gen,
@@ -258,7 +257,6 @@ s.waitForBoot{
 		\buf1, ~b1,
 		\buf2, ~b2,
 		\buf3, ~b3,
-		\outAmp, 1,
 		\freq, Pfunc({~scale.degreeToFreq(((~amp * 10000) % 1.0).range(0,7), 36, ((~amp * 10000) % 1.0).range(1,5))}),
 		\rate, Pfunc({((~amp * 10000) % 1.0).range(-1,1)}),
 		\rate1, Pfunc({((~amp * 10000) % 1.0).range(-2,2)}),
@@ -276,21 +274,19 @@ s.waitForBoot{
 		\curve, Pfunc({((~amp * 10000) % 1.0).range(-1,1)}),
 		\dur, 15 * Pkey(\timeFac),
 	)
-	);
+	).play;
 	s.sync;
 
-	//distribute
+	//murumurate
 	Pdef(\DSP, Pbind(
 		\instrument, Pxrand(~dsp, inf).trace,
 		\group, ~proc,
 		\addAction, \addToTail,
 		\inBus, Pfunc({((~amp * 10000) % 1.0).range(2,5).round}),
 		\outBus, Pkey(\inBus),
-		\wet, 1,
 		\modFreq, Pfunc({((~amp * 10000) % 1.0).range(0.1,3)}),
 		\modRate, Pfunc({((~amp * 10000) % 1.0).range(0.0001,0.05)}),
 		\depth, Pfunc({((~amp * 10000) % 1.0).range(0.1,0.9)}),
-		\outAmp, 1,
 		\freq, Pfunc({~scale.degreeToFreq(((~amp * 10000) % 1.0).range(0,7), 36, ((~amp * 10000) % 1.0).range(1,4))}),
 		\res, Pfunc({((~amp * 10000) % 1.0).range(0.1,0.8)}),
 		\filtFreq, Pfunc({~scale.degreeToFreq(((~amp * 10000) % 1.0).range(0,7), 36, ((~amp * 10000) % 1.0).range(3,8))}),
@@ -324,11 +320,8 @@ s.waitForBoot{
 		\rel, Pfunc({((~amp * 10000) % 1.0).range(5,10)}) * Pkey(\timeFac),
 		\dur, 20 * Pkey(\timeFac),
 	)
-	);
-	s.sync;
+	).play;
 	//emerge
-	Pdef(\GEN).play;
-	Pdef(\DSP).play;
 };
 )
 
