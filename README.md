@@ -1,2 +1,1 @@
-# dither-tremble-leak-continue
-dither as material in sound
+# dither-tremble-leak-contin
