@@ -16,13 +16,13 @@ s.waitForBoot{
 	~dsp = Array.with(\rsn, \flng, \ptchr, \phsr, \sptchr, \brck, \svf, \nfvrb, \scrmbl, \cmb, \rctcmb, \psp, \trm, \cnmp, \svf, \dl, \chrs);
 
 	//ear-as-mouth
-	SynthDef(\lsn, {arg inBus = 0, rate = 60;
+	SynthDef(\snd, {arg inBus = 0, rate = 60;
 		var amp = Amplitude.kr(SoundIn.ar(inBus) + In.ar(inBus));
 		SendReply.kr(Impulse.kr(rate), '/anl', [amp]);
 	}).play(~mx, [\inBus, 0], \addToTail);
 
 	//world-as-dither
-	OSCdef(\listener, {arg msg; var data = msg[3..];
+	OSCdef(\lsn, {arg msg; var data = msg[3..];
 		~lvl = data[0];
 	}, '/anl');
 
