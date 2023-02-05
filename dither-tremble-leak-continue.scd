@@ -3,7 +3,7 @@ Server.local.options.numOutputBusChannels = 6;
 s.waitForBoot{
 	Buffer.loadDialog(action: {arg buffer; ~b1 = buffer.read(buffer.path)});
 	Buffer.loadDialog(action: {arg buffer; ~b2 = buffer.read(buffer.path)});
-	//a point of reentry already before the beginning
+	//reentry-before-the-beginning
 	~b3 = Buffer.alloc(s, 44100 * 8.0, 1);
 
 	//continue
@@ -15,18 +15,18 @@ s.waitForBoot{
 	~gns = Array.with(\add, \crs, \bnd, \grn);
 	~dsp = Array.with(\rsn, \flng, \ptchr, \phsr, \sptchr, \brck, \svf, \nfvrb, \scrmbl, \cmb, \rctcmb, \psp, \trm, \cnmp, \svf, \dl, \chrs);
 
-	//ear as mouth
+	//ear-as-mouth
 	SynthDef(\lsn, {arg inBus = 0, rate = 60;
 		var amp = Amplitude.kr(SoundIn.ar(inBus) + In.ar(inBus));
 		SendReply.kr(Impulse.kr(rate), '/anl', [amp]);
 	}).play(~mx, [\inBus, 0], \addToTail);
 
-	//world as dither
+	//world-as-dither
 	OSCdef(\listener, {arg msg; var data = msg[3..];
 		~lvl = data[0];
 	}, '/anl');
 
-	//forms of trembling
+	//forms-of-trembling
 	SynthDef("trm", {arg inBus = 0, outBus = 0, gate = 1, atk = 0.1, dc = 0.1, sus = 1, rel = 0.1, curve = 1, outAmp = 0.5, wet = 1, modFreq = 0, depth = 1;
 		var sig, env;
 		sig = In.ar(inBus, 1) * (SinOsc(modFreq).range(0,1) * depth);
@@ -174,7 +174,7 @@ s.waitForBoot{
 		XOut.ar(outBus, env, sig);
 	}).add;
 
-	//leak | leap
+	//leak.leap
 	SynthDef("add", {arg outBus = 0, filter = 0.5, rate = 1, atk = 0.1, sus = 1, gate = 1,filtFreq = 1000, rel = 0.1, curve = 0, verbMix = 0.5, freq = 100, numHarm = 25, mode = 0, lag = 1, freeze = 0, buf, outAmp = 1;
 		var sig, sig2, verb, chain, chain1, chain2, env;
 		sig = Blip.ar(freq, numHarm);
@@ -227,7 +227,7 @@ s.waitForBoot{
 		Out.ar(outBus, sig * env);
 	}).add;
 
-	//single body
+	//single-body
 	SynthDef("mx", {arg inBus = 0, outBus = 0, limit = 0.9;
 		var sig, sig2;
 		sig = Splay.ar(In.ar(inBus, 4), 1, 1, -1);
@@ -241,7 +241,7 @@ s.waitForBoot{
 	}).play(~mx, [\inBus, 2, \outBus, 0], \addToHead);
 	s.sync;
 
-	//small bottle
+	//small-bottle
 	SynthDef("rcrd", {arg out = 0, buf = 0, inBus = 0;
 		RecordBuf.ar(In.ar(inBus), buf, 0, 1, 0, 1 , 1, 1);
 	}).play(~rc, [\inBus, 0, \outBus, 0, \buf, ~b3], \addToHead);
@@ -280,8 +280,8 @@ s.waitForBoot{
 		\instrument, Pxrand(~dsp, inf).trace,
 		\group, ~prc,
 		\addAction, \addToTail,
-		\inBus, Pfunc({((~lvl * 10000) % 1.0).range(2,5).round}),
-		\outBus, Pfunc({((~lvl * 20000) % 1.0).range(2,5).round}),
+		\inBus, Pfunc({((~lvl * 10000) % 1.0).range(2,5).round.postln}),
+		\outBus, Pfunc({((~lvl * 15000) % 1.0).range(2,5).round.postln}),
 		\modFreq, Pfunc({((~lvl * 10000) % 1.0).range(0.1,3)}),
 		\modRate, Pfunc({((~lvl * 10000) % 1.0).range(0.0001,0.05)}),
 		\depth, Pfunc({((~lvl * 10000) % 1.0).range(0.1,0.9)}),
@@ -303,7 +303,7 @@ s.waitForBoot{
 		\bwr, Pfunc({((~lvl * 10000) % 1.0).range(0.1,5)}),
 		\image , Pfunc({((~lvl * 10000) % 1.0).range(-1,1)}),
 		\real, Pfunc({((~lvl * 10000) % 1.0).range(-1,1)}),
-		\freeze, Pfunc{[0, 1].choose},
+		\freeze, Pfunc({((~lvl * 10000) % 1.0).range(0,1).round}),
 		\pitchDisp, Pfunc({((~lvl * 10000) % 1.0).range(0.001,0.01)}),
 		\timeDisp, Pfunc({((~lvl * 10000) % 1.0).range(0.001,0.01)}),
 		\threshold, Pfunc({((~lvl * 10000) % 1.0).range(0.1,6)}),
