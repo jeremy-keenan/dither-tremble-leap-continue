@@ -21,7 +21,7 @@ s.waitForBoot{
 		SendReply.kr(Impulse.kr(rate), '/anl', [amp]);
 	}).play(~mx, [\inBus, 0], \addToTail);
 
-	//world-as-dither
+	//dither-as-material, material-as-dither
 	OSCdef(\lsn, {arg msg; var data = msg[3..];
 		~lvl = data[0];
 	}, '/anl');
