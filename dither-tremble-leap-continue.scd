@@ -1,5 +1,5 @@
 Server.local.options.numOutputBusChannels = 6;
-(//https://github.com/jeremy-keenan/dither-tremble-leak-continue
+(//https://github.com/jeremy-keenan/dither-tremble-leap-continue
 s.waitForBoot{
 	Buffer.loadDialog(action: {arg buffer; ~b1 = buffer.read(buffer.path)});
 	Buffer.loadDialog(action: {arg buffer; ~b2 = buffer.read(buffer.path)});
