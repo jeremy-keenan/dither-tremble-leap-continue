@@ -287,7 +287,7 @@ s.waitForBoot{
 		\depth, Pfunc({((~lvl * 10000) % 1.0).range(0.1,0.9)}),
 		\freq, Pfunc({~scl.degreeToFreq(((~lvl * 10000) % 1.0).range(0,7), 36, ((~lvl * 10000) % 1.0).range(1,4))}),
 		\res, Pfunc({((~lvl * 10000) % 1.0).range(0.1,0.8)}),
-		\filtFreq, Pfunc({~scale.degreeToFreq(((~lvl * 10000) % 1.0).range(0,7), 36, ((~lvl * 10000) % 1.0).range(3,8))}),
+		\filtFreq, Pfunc({~scl.degreeToFreq(((~lvl * 10000) % 1.0).range(0,7), 36, ((~lvl * 10000) % 1.0).range(3,8))}),
 		\filType, Pfunc({((~lvl * 10000) % 1.0).range(0,2).round}),
 		\decayTime, Pfunc({((~lvl * 10000) % 1.0).range(0.001,0.1)}),
 		\decay, Pfunc({((~lvl * 10000) % 1.0).range(0.2,0.85)}),
